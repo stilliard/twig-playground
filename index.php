@@ -90,13 +90,13 @@ else {
         <style>
         
         body { font: 14px/1.3 sans-serif; margin: 0 auto; max-width: 960px; padding: 10px; }
-       
+        a { cursor: pointer; }
         div, ul { padding: 0; margin: 0; }
         
-        .file-names-list { width: 20%; float: left; border-top: 1px solid #333; }
+        .file-names-list { width: 20%; float: left; border-top: 1px solid #CCC; }
         .file-contents { width: 80%; float: left; }
 
-        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid #333; }
+        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid #666; }
         .file-names-list li.active { background-color: #666; }
         .file-names-list a { display: inline-block; width: 100%; color: #666; text-decoration: none; }
         .file-names-list li.active a { color: #FFF; }
@@ -116,8 +116,24 @@ else {
     
         #add-file-btn { font-style: italic; }
 
+        a.delete-file-btn { float: right; width: auto; font-weight: bold; }
+
         .CodeMirror { border: 1px solid #ccc; padding: 5px; height: auto; min-height: 120px; }
         #twig-vars ~ .CodeMirror { min-height: 25px; }
+
+        .title-tab-style {
+            border: 1px solid #CCC;
+            border-bottom: 0;
+            background-color: #EEE;
+            color: #333;
+            font-weight: bold;
+            padding: 5px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .title-tab-container {
+            margin: 0;
+        }
 
         </style>
     </head>
@@ -133,17 +149,15 @@ else {
             </header>
         
             <!-- enter variables -->
-            <p>
-                <label for="twig-vars">JSON variables: </label>
-                <textarea name="twig-vars" id="twig-vars"><?php echo $twigVars; ?></textarea>
-            </p>
+            <p class="title-tab-container"><span class="title-tab-style">JSON variables:</span></p>
+            <textarea name="twig-vars" id="twig-vars"><?php echo $twigVars; ?></textarea>
             
             <div class="twig-links">
                 <a href="http://twig.sensiolabs.org/doc/templates.html" target="_blank">Twig Syntax Intro</a>
                 | <a href="http://twig.sensiolabs.org/documentation#reference" target="_blank">Twig Reference</a>
             </div>
 
-            <p>Setup twig files:</p>
+            <p class="title-tab-container"><span class="title-tab-style">Setup twig files:</span></p>
 
             <!-- list of files -->
             <ul class="file-names-list">
@@ -174,7 +188,7 @@ else {
            
             <!-- show html output --> 
             <div class="file-output-container">
-                <p>Result:</p>
+                <p class="title-tab-container"><span class="title-tab-style">Result:</span></p>
                 <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
             </div>
 
