@@ -201,6 +201,7 @@ else {
         <script src="/bower_components/codemirror/mode/jinja2/jinja2.js"></script>
         <script src="/bower_components/codemirror/mode/javascript/javascript.js"></script>
         <script src="/bower_components/codemirror/mode/xml/xml.js"></script>
+        <script src="/bower_components/codemirror/mode/css/css.js"></script>
 
         <!-- main script for this page -->
         <script>
@@ -331,7 +332,7 @@ else {
             }, {
                 value: text,
                 readOnly: true,
-                mode: 'text/html',
+                mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
                 lineNumbers: true,
                 viewportMargin: Infinity
             });
@@ -341,4 +342,3 @@ else {
 
     </body>
 </html>
-
