@@ -19,10 +19,48 @@ $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : 
 // set vars
 $twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{ "text": "demo", "items": [{ "name": "A" }, { "name": "B" }] }';
 
-$loader = new Twig_Loader_Array($files);
-$twig = new Twig_Environment($loader);
+// decode the json, check for errors
+$jsonError = false;
+$twigVarsArray = json_decode($twigVars, true);
+if ( ! $twigVarsArray) {
+    switch (json_last_error()) {
+        case JSON_ERROR_NONE:
+            $jsonError = 'No errors';
+        break;
+        case JSON_ERROR_DEPTH:
+            $jsonError = 'Maximum stack depth exceeded';
+        break;
+        case JSON_ERROR_STATE_MISMATCH:
+            $jsonError = 'Underflow or the modes mismatch';
+        break;
+        case JSON_ERROR_CTRL_CHAR:
+            $jsonError = 'Unexpected control character found';
+        break;
+        case JSON_ERROR_SYNTAX:
+            $jsonError = 'Syntax error, malformed JSON';
+        break;
+        case JSON_ERROR_UTF8:
+            $jsonError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+        break;
+        default:
+            $jsonError = 'Unknown error';
+        break;
+    }
+}
 
-$output = $twig->render('index.html.twig', json_decode($twigVars, true));
+// if no json errors
+if ( ! $jsonError) {
+
+    // read in the files
+    $loader = new Twig_Loader_Array($files);
+    $twig = new Twig_Environment($loader);
+
+    // render twig templates
+    $output = $twig->render('index.html.twig', $twigVarsArray);
+}
+else {
+    $output = 'Json error: ' . $jsonError;
+}
 
 ?><!DOCTYPE html>
 <html lang="en">
