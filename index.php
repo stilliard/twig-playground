@@ -276,15 +276,22 @@ else {
 
                 var $this = $(this),
                     text = $this.text()
-                    href = $this.attr('href');
+                    href = $this.attr('href'),
+                    html = '';
+
+                html = '\
+                <div class="rename-file">\
+                    <input type="hidden" name="old-file-name" value="'+ href +'">\
+                    <input type="text" name="new-file-name" value="'+ text +'" title="Press enter to save">';
 
                 // should we offer a delete btn? (don't allow delete if there's only 1 file left)
+                if ($('.file-names-list li').length > 2) {
+                    html += '<a class="delete-file-btn">x</a>';
+                }
 
-                $this.replaceWith('<div class="rename-file">\
-                    <input type="hidden" name="old-file-name" value="'+ href +'">\
-                    <input type="text" name="new-file-name" value="'+ text +'" title="Press enter to save">\
-                    <a class="delete-file-btn">x</a>\
-                </div>');
+                html += '</div>';
+
+                $this.replaceWith(html);
 
                 $this.find('input[name="new-file-name"]').focus();
 
