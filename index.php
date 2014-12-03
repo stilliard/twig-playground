@@ -58,7 +58,7 @@ if ( ! $jsonError) {
         $twig = new Twig_Environment($loader);
 
         // render twig templates
-        $output = $twig->render('index.html.twig', $twigVarsArray);
+        $output = $twig->render(array_keys($files)[0], $twigVarsArray);
 
     }
     // show user errors
