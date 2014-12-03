@@ -149,7 +149,7 @@ else {
             </header>
         
             <!-- enter variables -->
-            <p class="title-tab-container"><span class="title-tab-style">JSON variables:</span></p>
+            <p class="title-tab-container"><span class="title-tab-style">JSON variables:</span> <em>These will become variables available to the twig template files</em></p>
             <textarea name="twig-vars" id="twig-vars"><?php echo $twigVars; ?></textarea>
             
             <div class="twig-links">
@@ -157,7 +157,7 @@ else {
                 | <a href="http://twig.sensiolabs.org/documentation#reference" target="_blank">Twig Reference</a>
             </div>
 
-            <p class="title-tab-container"><span class="title-tab-style">Twig Files:</span></p>
+            <p class="title-tab-container"><span class="title-tab-style">Twig Files:</span> <em>Only the first file is compiled, but other files can be included or extended</em></p>
 
             <!-- list of files -->
             <ul class="file-names-list">
