@@ -261,10 +261,10 @@ else {
             $('.file-names-list').on('click', '.delete-file-btn', function () {
                 var $this = $(this),
                     $parent = $this.parent().parent(),
-                    tab = $parent.find('a[href]').attr('href');
+                    $tab = $($parent.find('input[name="old-file-name"]').val());
 
                 $parent.remove();
-                $(tab).remove();
+                $tab.remove();
 
                 // show first tab
                 $('.file-names-list li:first-child > a').click();
