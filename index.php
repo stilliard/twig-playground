@@ -7,8 +7,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 // setup array of files
 $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : [
-    'index.html.twig' => '
-<h1>{{ text | title }}</h1>
+    'index.html.twig' => '<h1>{{ text | title }}</h1>
 <ul>
 {% for item in items %}
     <li>{{ item.name }}</li>
@@ -32,7 +31,6 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
         <title>Twig Playground</title>
 
         <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
-        <link rel="stylesheet" type="text/css" href="bower_components/codemirror/theme/ambiance.css">
         
         <style>
         
@@ -40,12 +38,13 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
        
         div, ul { padding: 0; margin: 0; }
         
-        .file-names-list { width: 20%; float: left; }
+        .file-names-list { width: 20%; float: left; border-top: 1px solid #333; }
         .file-contents { width: 80%; float: left; }
 
-        .file-names-list li { padding: 4px; }
-        .file-names-list li.active { background-color: #CCC; }
-        .file-names-list a { display: inline-block; width: 100%; }
+        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid #333; }
+        .file-names-list li.active { background-color: #666; }
+        .file-names-list a { display: inline-block; width: 100%; color: #666; text-decoration: none; }
+        .file-names-list li.active a { color: #FFF; }
 
         .file-content { display: none; }
         .file-content.active { display: block; }
@@ -53,7 +52,8 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
         
         #twig-vars { width: 100%; }
         
-        .file-output { clear: both; border: 1px solid #CCC; background-color: #EEE; padding: 4px; }
+        .file-output-container { clear: both; }
+        .file-output { border: 1px solid #CCC; background-color: #EEE; padding: 4px; }
         
         .submit-btn,
         .reset-btn,
@@ -61,8 +61,8 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
     
         #add-file-btn { font-style: italic; }
 
-        .CodeMirror { border: 1px solid #ccc; }
-        #twig-vars ~ .CodeMirror { height: auto; }
+        .CodeMirror { border: 1px solid #ccc; padding: 5px; height: auto; min-height: 120px; }
+        #twig-vars ~ .CodeMirror { min-height: 25px; }
 
         </style>
     </head>
@@ -117,9 +117,11 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
             } ?>
             </div>
            
-           <!-- show html output --> 
-            <p>Result:</p>
-            <pre class="file-output"><?php echo htmlspecialchars($output); ?></pre>
+            <!-- show html output --> 
+            <div class="file-output-container">
+                <p>Result:</p>
+                <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
+            </div>
 
         </form>
 
@@ -129,6 +131,7 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
         <script src="/bower_components/codemirror/lib/codemirror.js"></script>
         <script src="/bower_components/codemirror/mode/jinja2/jinja2.js"></script>
         <script src="/bower_components/codemirror/mode/javascript/javascript.js"></script>
+        <script src="/bower_components/codemirror/mode/xml/xml.js"></script>
 
         <!-- main script for this page -->
         <script>
@@ -152,7 +155,7 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
                 $('a[href="#file-' + newFileNameText.replace(/\./g, '☺') + '"]').click();
 
                 // init codemirror editor
-                CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true } });
+                CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
 
                 return false;
             });
@@ -183,8 +186,22 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
             });
 
             // init codemirror editor
-            CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true } });
+            CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
             CodeMirror.fromTextArea($('#twig-vars')[0], { mode: "application/json", viewportMargin: Infinity });
+
+            // init codemirror on the output too, but make it read only
+            var $output = $('.file-output'),
+                text = $output.text();
+            CodeMirror(function(elt) {
+                $output.replaceWith(elt);
+                $(elt).addClass('file-output');
+            }, {
+                value: text,
+                readOnly: true,
+                mode: 'text/html',
+                lineNumbers: true,
+                viewportMargin: Infinity
+            });
 
         });
         </script>
