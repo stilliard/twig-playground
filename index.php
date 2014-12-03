@@ -157,7 +157,7 @@ else {
                 | <a href="http://twig.sensiolabs.org/documentation#reference" target="_blank">Twig Reference</a>
             </div>
 
-            <p class="title-tab-container"><span class="title-tab-style">Setup twig files:</span></p>
+            <p class="title-tab-container"><span class="title-tab-style">Twig Files:</span></p>
 
             <!-- list of files -->
             <ul class="file-names-list">
@@ -188,7 +188,7 @@ else {
            
             <!-- show html output --> 
             <div class="file-output-container">
-                <p class="title-tab-container"><span class="title-tab-style">Result:</span></p>
+                <p class="title-tab-container"><span class="title-tab-style">HTML Output:</span></p>
                 <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
             </div>
 
