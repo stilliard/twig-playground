@@ -222,10 +222,7 @@ else {
 
                 // open the new tab
                 $('a[href="#file-' + newFileNameText.replace(/\./g, '☺') + '"]').click();
-
-                // init codemirror editor
-                CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
-
+                
                 return false;
             });
             // hijact enter key to do the above too
@@ -239,17 +236,23 @@ else {
             // tabs
             $('.file-names-list').on('click', 'a', function () {
 
-                var tab;
+                var $tab;
                 
                 // hide current tabs
                 $('.file-names-list li.active, .file-content.active').removeClass('active');
                 
                 // show this tab
                 $(this).parent().addClass('active');
-                tab = $($(this).attr('href')).addClass('active');
+                $tab = $($(this).attr('href')).addClass('active');
 
                 // put cursor into textarea
-                tab.find('textarea').focus();
+                $tab.find('textarea').focus();
+
+                // detect if codemirror is not yet setup
+                if ( ! $tab.find('textarea ~ .CodeMirror').length) {
+                    // init codemirror editor
+                    CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
+                }
 
                 return false;
             });
