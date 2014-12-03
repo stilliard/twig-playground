@@ -51,12 +51,29 @@ if ( ! $twigVarsArray) {
 // if no json errors
 if ( ! $jsonError) {
 
-    // read in the files
-    $loader = new Twig_Loader_Array($files);
-    $twig = new Twig_Environment($loader);
+    try {
 
-    // render twig templates
-    $output = $twig->render('index.html.twig', $twigVarsArray);
+        // read in the files
+        $loader = new Twig_Loader_Array($files);
+        $twig = new Twig_Environment($loader);
+
+        // render twig templates
+        $output = $twig->render('index.html.twig', $twigVarsArray);
+
+    }
+    // show user errors
+    catch (Twig_Error_Syntax $e) {
+        $output = 'Twig syntax error: ' . $e->getMessage();
+    }
+    catch (Twig_Error_Runtime $e) {
+        $output = 'Twig runtime error: ' . $e->getMessage();
+    }
+    catch (Twig_Error_Loader $e) {
+        $output = 'Twig loader error: ' . $e->getMessage();
+    }
+    catch (Twig_Error $e) {
+        $output = 'Twig error'; // not showing $e->getMessage() here as that may give too much away
+    }
 }
 else {
     $output = 'Json error: ' . $jsonError;
