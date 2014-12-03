@@ -30,6 +30,9 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
     <head>
         <meta charset="utf-8">
         <title>Twig Playground</title>
+
+        <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
+        <link rel="stylesheet" type="text/css" href="bower_components/codemirror/theme/ambiance.css">
         
         <style>
         
@@ -57,6 +60,9 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
         .twig-links { float: right; padding: 5px; }
     
         #add-file-btn { font-style: italic; }
+
+        .CodeMirror { border: 1px solid #ccc; }
+        #twig-vars ~ .CodeMirror { height: auto; }
 
         </style>
     </head>
@@ -119,6 +125,10 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
 
         <!-- bring in jquery lib -->
         <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <!-- bring in codemirror syntax editor -->
+        <script src="/bower_components/codemirror/lib/codemirror.js"></script>
+        <script src="/bower_components/codemirror/mode/jinja2/jinja2.js"></script>
+        <script src="/bower_components/codemirror/mode/javascript/javascript.js"></script>
 
         <!-- main script for this page -->
         <script>
@@ -140,6 +150,9 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
 
                 // open the new tab
                 $('a[href="#file-' + newFileNameText.replace(/\./g, '☺') + '"]').click();
+
+                // init codemirror editor
+                CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true } });
 
                 return false;
             });
@@ -168,6 +181,10 @@ $output = $twig->render('index.html.twig', json_decode($twigVars, true));
 
                 return false;
             });
+
+            // init codemirror editor
+            CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true } });
+            CodeMirror.fromTextArea($('#twig-vars')[0], { mode: "application/json", viewportMargin: Infinity });
 
         });
         </script>

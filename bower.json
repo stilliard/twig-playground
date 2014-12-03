@@ -1,0 +1,19 @@
+{
+  "name": "twig-playground",
+  "version": "0.0.0",
+  "authors": [
+    "Andrew Stilliard <andrew.stilliard@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "codemirror": "~4.8.0"
+  }
+}
