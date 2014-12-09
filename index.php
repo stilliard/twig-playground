@@ -135,6 +135,14 @@ else {
             margin: 0;
         }
 
+        @media (max-width: 600px){
+            .file-contents,
+            .file-names-list {
+                float: none;
+                width: 100%;
+            }
+        }
+
         </style>
     </head>
     <body>
