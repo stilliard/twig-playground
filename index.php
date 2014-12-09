@@ -84,6 +84,7 @@ else {
     <head>
         <meta charset="utf-8">
         <title>Twig Playground</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
         
