@@ -54,24 +54,24 @@ if ( ! $jsonError) {
     try {
 
         // read in the files
-        $loader = new Twig_Loader_Array($files);
-        $twig = new Twig_Environment($loader);
+        $loader = new Twig\Loader\ArrayLoader($files);
+        $twig = new Twig\Environment($loader);
 
         // render twig templates
         $output = $twig->render(array_keys($files)[0], $twigVarsArray);
 
     }
     // show user errors
-    catch (Twig_Error_Syntax $e) {
+    catch (Twig\Error\SyntaxError $e) {
         $output = 'Twig syntax error: ' . $e->getMessage();
     }
-    catch (Twig_Error_Runtime $e) {
+    catch (Twig\Error\RuntimeError $e) {
         $output = 'Twig runtime error: ' . $e->getMessage();
     }
-    catch (Twig_Error_Loader $e) {
+    catch (Twig\Error\LoaderError $e) {
         $output = 'Twig loader error: ' . $e->getMessage();
     }
-    catch (Twig_Error $e) {
+    catch (Twig\Error\Error $e) {
         $output = 'Twig error'; // not showing $e->getMessage() here as that may give too much away
     }
 }
