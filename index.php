@@ -464,14 +464,15 @@ else {
                         // Update the output area with the response
                         var $output = $('.file-output');
                         var filteredResponse = $(response).find('.file-output').html();
-                        $output.html(filteredResponse);
+                        var decodedResponse = $('<textarea/>').html(filteredResponse).text();
+                        $output.html(decodedResponse);
 
                         // Reinitialize CodeMirror for the updated output
                         CodeMirror(function(elt) {
                             $output.replaceWith(elt);
                             $(elt).addClass('file-output');
                         }, {
-                            value: filteredResponse,
+                            value: decodedResponse,
                             readOnly: true,
                             mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
                             lineNumbers: true,
