@@ -190,48 +190,89 @@ else {
         <title>Twig Playground</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/default.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/lucario.min.css">
+
         <style>
-        
-        body { font: 14px/1.3 sans-serif; margin: 0 auto; max-width: 960px; padding: 10px; }
+
+        /* === vars === */
+        :root {
+            --outer-background: #EEE;
+            --inner-background: #FFF;
+            --border: #CCC;
+            --text: #222;
+            --active-tab: #666;
+        }
+        <?php if (! isset($_GET['theme'])) { ?>@media (prefers-color-scheme: dark) {<?php } ?>
+        <?php if (! isset($_GET['theme']) || $_GET['theme'] == 'dark') { ?>
+            :root {
+                --outer-background: #000912;
+                --inner-background: #011021;
+                --border: #005f9f;
+                --text: #cceeff;
+                --active-tab: #007bff;
+            }
+        <?php } ?>
+        <?php if (! isset($_GET['theme'])) { ?>}<?php } ?>
+
+        /* === base === */
+        html { background-color: var(--outer-background); }
+        body {
+            background-color: var(--inner-background);
+            color: var(--text);
+            margin: 0 auto;
+            max-width: 1260px;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+            margin-top: 2em;
+        }
+
         a { cursor: pointer; }
         div, ul { padding: 0; margin: 0; }
-        
-        .file-names-list { float: left; border-top: 1px solid #CCC; }
-        .file-contents { width: 80%; float: left; }
 
-        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid #666; }
-        .file-names-list li.active { background-color: #666; }
-        .file-names-list a { display: inline-block; width: 100%; color: #666; text-decoration: none; }
+        /* === editor === */
+        .file-names-list { border-top: 1px solid var(--border); }
+        .file-contents { }
+
+        .list-group-item,
+        .list-group-item + .list-group-item { background-color: transparent; }
+        .file-names-list .form-control { background-color: transparent; color: var(--text); }
+        .file-names-list .form-control,
+        .file-names-list .form-control::placeholder { color: #666; }
+
+        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid var(--active-tab); }
+        .file-names-list li.active { background-color: var(--active-tab); }
+        .file-names-list a { display: inline-block; width: 100%; color: var(--active-tab); text-decoration: none; }
         .file-names-list li.active a { color: #FFF; }
 
         .file-content { display: none; }
         .file-content.active { display: block; }
         .file-content textarea { width: 100%; min-height: 200px; }
-        
+
         #twig-vars { width: 100%; }
-        
+
         .file-output-container { clear: both; }
-        .file-output { border: 1px solid #CCC; background-color: #EEE; padding: 4px; }
-        
+        .file-output { border: 1px solid var(--border); background-color: #EEE; padding: 4px; }
+
         .submit-btn,
         .reset-btn,
         .twig-links { float: right; padding: 5px; }
-    
+
         #add-file-btn { font-style: italic; }
 
         a.delete-file-btn { float: right; width: auto; font-weight: bold; }
 
-        .CodeMirror { border: 1px solid #ccc; padding: 5px; height: auto; min-height: 120px; }
+        .CodeMirror { border: 1px solid var(--border); padding: 5px; height: auto; min-height: 120px; }
         #twig-vars ~ .CodeMirror { min-height: 25px; }
 
+        #theme { margin-top: 10px; }
+
         .title-tab-style {
-            border: 1px solid #CCC;
+            border: 1px solid var(--border);
             border-bottom: 0;
             background-color: #EEE;
             color: #333;
@@ -243,6 +284,9 @@ else {
         .title-tab-container {
             margin: 0;
         }
+
+        /* cancel theme box-shadow */
+        .cm-s-default.CodeMirror { box-shadow: none; }
 
         @media (max-width: 600px){
             .file-contents,
@@ -263,16 +307,23 @@ else {
                 <div>
                     <input type="submit" class="btn btn-primary" value="Render">
                     <a href="/" class="btn btn-secondary">Reset</a>
+
+                    <!-- theme select -->
+                    <select name="theme" id="theme" class="form-select">
+                        <option value="">Auto</option>
+                        <option value="light" <?php if (isset($_GET['theme']) && $_GET['theme'] == 'light') echo 'selected'; ?>>Light</option>
+                        <option value="dark" <?php if (isset($_GET['theme']) && $_GET['theme'] == 'dark') echo 'selected'; ?>>Dark</option>
+                    </select>
                 </div>
             </header>
-        
+
             <!-- enter variables -->
             <div class="mb-4">
                 <h2 class="h5">JSON variables:</h2>
                 <p><em>These will become variables available to the twig template files</em></p>
                 <textarea name="twig-vars" id="twig-vars" class="form-control"><?php echo $twigVars; ?></textarea>
             </div>
-            
+
             <div class="mb-4">
                 <h2 class="h5">Twig Files:</h2>
                 <p><em>Only the first file is compiled, but other files can be included or extended</em></p>
@@ -306,8 +357,8 @@ else {
                     </div>
                 </div>
             </div>
-           
-            <!-- show html output --> 
+
+            <!-- show html output -->
             <div class="file-output-container">
                 <h2 class="h5">HTML Output:</h2>
                 <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
@@ -316,18 +367,40 @@ else {
         </form>
 
         <!-- bring in jquery lib -->
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <!-- bring in codemirror syntax editor -->
-        <script src="/bower_components/codemirror/lib/codemirror.js"></script>
-        <script src="/bower_components/codemirror/mode/jinja2/jinja2.js"></script>
-        <script src="/bower_components/codemirror/mode/javascript/javascript.js"></script>
-        <script src="/bower_components/codemirror/mode/xml/xml.js"></script>
-        <script src="/bower_components/codemirror/mode/css/css.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/jinja2/jinja2.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/xml/xml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
 
         <!-- main script for this page -->
         <script>
         jQuery(function($) {
-            
+
+            // theme select
+            $('#theme').change(function () {
+                var theme = $(this).val();
+                if (theme) {
+                    window.location.href = '/?theme=' + theme;
+                } else {
+                    window.location.href = '/';
+                }
+            });
+
+            // get current theme
+            var theme = $('#theme').val();
+            if (theme == '') {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    theme = 'dark';
+                } else {
+                    theme = 'light';
+                }
+            }
+            // code mirror theme
+            var codemirrorTheme = theme == 'dark' ? 'lucario' : 'default';
+
             // Add file
             $('#add-file-btn').click(function () {
                 var $this = $(this),
@@ -344,7 +417,7 @@ else {
 
                 // open the new tab
                 $('a[href="#file-' + newFileNameText.replace(/\./g, '☺') + '"]').click();
-                
+
                 return false;
             });
             // hijact enter key to do the above too
@@ -359,10 +432,10 @@ else {
             $('.file-names-list').on('click', 'a[href]', function () {
 
                 var $tab;
-                
+
                 // hide current tabs
                 $('.file-names-list li.active, .file-content.active').removeClass('active');
-                
+
                 // show this tab
                 $(this).parent().addClass('active');
                 $tab = $($(this).attr('href')).addClass('active');
@@ -373,7 +446,11 @@ else {
                 // detect if codemirror is not yet setup
                 if ( ! $tab.find('textarea ~ .CodeMirror').length) {
                     // init codemirror editor
-                    CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
+                    CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
+                        mode: { name: "jinja2", htmlMode: true },
+                        viewportMargin: Infinity,
+                        theme: codemirrorTheme,
+                    });
                 }
 
                 return false;
@@ -441,8 +518,16 @@ else {
             });
 
             // init codemirror editor
-            CodeMirror.fromTextArea($('.file-content.active textarea')[0], { mode: { name: "jinja2", htmlMode: true }, viewportMargin: Infinity });
-            CodeMirror.fromTextArea($('#twig-vars')[0], { mode: "application/json", viewportMargin: Infinity });
+            CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
+                mode: { name: "jinja2", htmlMode: true },
+                viewportMargin: Infinity,
+                theme: codemirrorTheme,
+            });
+            CodeMirror.fromTextArea($('#twig-vars')[0], {
+                mode: "application/json",
+                viewportMargin: Infinity,
+                theme: codemirrorTheme,
+            });
 
             // init codemirror on the output too, but make it read only
             var $output = $('.file-output'),
@@ -455,7 +540,8 @@ else {
                 readOnly: true,
                 mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
                 lineNumbers: true,
-                viewportMargin: Infinity
+                viewportMargin: Infinity,
+                theme: codemirrorTheme,
             });
 
             // Add event handler for form submission
@@ -484,7 +570,8 @@ else {
                             readOnly: true,
                             mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
                             lineNumbers: true,
-                            viewportMargin: Infinity
+                            viewportMargin: Infinity,
+                            theme: codemirrorTheme,
                         });
                     },
                     error: function() {
