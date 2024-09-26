@@ -206,8 +206,8 @@ else {
             --text: #222;
             --active-tab: #666;
         }
-        <?php if (! isset($_GET['theme'])) { ?>@media (prefers-color-scheme: dark) {<?php } ?>
-        <?php if (! isset($_GET['theme']) || $_GET['theme'] == 'dark') { ?>
+        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>@media (prefers-color-scheme: dark) {<?php } ?>
+        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '' || $_POST['theme'] == 'dark') { ?>
             :root {
                 --outer-background: #000912;
                 --inner-background: #011021;
@@ -216,7 +216,7 @@ else {
                 --active-tab: #007bff;
             }
         <?php } ?>
-        <?php if (! isset($_GET['theme'])) { ?>}<?php } ?>
+        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>}<?php } ?>
 
         /* === base === */
         html { background-color: var(--outer-background); }
@@ -311,8 +311,8 @@ else {
                     <!-- theme select -->
                     <select name="theme" id="theme" class="form-select">
                         <option value="">Auto</option>
-                        <option value="light" <?php if (isset($_GET['theme']) && $_GET['theme'] == 'light') echo 'selected'; ?>>Light</option>
-                        <option value="dark" <?php if (isset($_GET['theme']) && $_GET['theme'] == 'dark') echo 'selected'; ?>>Dark</option>
+                        <option value="light" <?php if (isset($_POST['theme']) && $_POST['theme'] == 'light') echo 'selected'; ?>>Light</option>
+                        <option value="dark" <?php if (isset($_POST['theme']) && $_POST['theme'] == 'dark') echo 'selected'; ?>>Dark</option>
                     </select>
                 </div>
             </header>
@@ -381,16 +381,20 @@ else {
 
             // theme select
             $('#theme').change(function () {
-                var theme = $(this).val();
-                if (theme) {
-                    window.location.href = '/?theme=' + theme;
-                } else {
-                    window.location.href = '/';
-                }
+                $('form').trigger('submit', [true]);
             });
 
             // track codemirror editors
             var editors = [];
+
+            // get data from codemirror editors
+            function getData() {
+                var data = {};
+                $.each(editors, function(index, editor) {
+                    data[editor.getTextArea().name] = editor.getValue();
+                });
+                return data;
+            }
 
             // get current theme
             var theme = $('#theme').val();
@@ -548,27 +552,15 @@ else {
             });
 
             // Add event handler for form submission
-            $('#twig-form').submit(function(event) {
-                event.preventDefault(); // Prevent default form submission
+            $('#twig-form').submit(function(event, bypass) {
+                if (bypass) return true;
 
-                var formData = $(this).serializeArray(); // Serialize form data
-                $.each(editors, function(index, editor) {
-                    var found = false;
-                    $.each(formData, function(index, item) {
-                        if (item.name == editor.getTextArea().name) {
-                            item.value = editor.getValue();
-                            found = true;
-                        }
-                    });
-                    if (!found) {
-                        formData.push({ name: editor.getTextArea().name, value: editor.getValue() });
-                    }
-                });
+                event.preventDefault(); // Prevent default form submission
 
                 $.ajax({
                     type: 'POST',
                     url: '', // Current page URL
-                    data: formData,
+                    data: getData(),
                     success: function(response) {
                         // Update the output area with the response
                         var $output = $('.file-output');
