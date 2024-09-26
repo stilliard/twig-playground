@@ -202,7 +202,7 @@ else {
         a { cursor: pointer; }
         div, ul { padding: 0; margin: 0; }
         
-        .file-names-list { width: 20%; float: left; border-top: 1px solid #CCC; }
+        .file-names-list { float: left; border-top: 1px solid #CCC; }
         .file-contents { width: 80%; float: left; }
 
         .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid #666; }
