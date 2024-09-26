@@ -191,6 +191,10 @@ else {
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" type="text/css" href="bower_components/codemirror/lib/codemirror.css">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         
         <style>
         
@@ -254,54 +258,58 @@ else {
 
         <form id="twig-form" method="POST">
 
-            <header>
-                <input type="submit" class="submit-btn" value="Render">
-                <a href="/" class="reset-btn">Reset</a>
-
+            <header class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Twig Playground</h1>
+                <div>
+                    <input type="submit" class="btn btn-primary" value="Render">
+                    <a href="/" class="btn btn-secondary">Reset</a>
+                </div>
             </header>
         
             <!-- enter variables -->
-            <p class="title-tab-container"><span class="title-tab-style">JSON variables:</span> <em>These will become variables available to the twig template files</em></p>
-            <textarea name="twig-vars" id="twig-vars"><?php echo $twigVars; ?></textarea>
-            
-            <div class="twig-links">
-                <a href="http://twig.sensiolabs.org/doc/templates.html" target="_blank">Twig Syntax Intro</a>
-                | <a href="http://twig.sensiolabs.org/documentation#reference" target="_blank">Twig Reference</a>
+            <div class="mb-4">
+                <h2 class="h5">JSON variables:</h2>
+                <p><em>These will become variables available to the twig template files</em></p>
+                <textarea name="twig-vars" id="twig-vars" class="form-control"><?php echo $twigVars; ?></textarea>
             </div>
-
-            <p class="title-tab-container"><span class="title-tab-style">Twig Files:</span> <em>Only the first file is compiled, but other files can be included or extended</em></p>
-
-            <!-- list of files -->
-            <ul class="file-names-list">
-            <?php
-            $active = true;
-             foreach ($files as $filename => $input) { ?>
-                <li<?php if ($active) echo ' class="active"'; ?>><a href="#file-<?php echo str_replace('.', '☺', $filename); ?>"><?php echo $filename; ?></a></li>
-            <?php $active = false;
-            } ?>
-                <li>
-                    <input type="text" id="new-file-name" placeholder="some-file.html.twig">
-                    <br>
-                    <a id="add-file-btn" href="#">+ Add file</a>
-                </li>
-            </ul>
-
-            <!-- each file's content -->
-            <div class="file-contents">
-            <?php
-            $active = true;
-            foreach ($files as $filename => $input) { ?>
-                <div id="file-<?php echo str_replace('.', '☺', $filename); ?>" class="file-content<?php if ($active) echo ' active'; ?>">
-                    <textarea name="files[<?php echo $filename; ?>]" class="file-input"><?php echo $input; ?></textarea>
+            
+            <div class="mb-4">
+                <h2 class="h5">Twig Files:</h2>
+                <p><em>Only the first file is compiled, but other files can be included or extended</em></p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <ul class="list-group file-names-list">
+                        <?php
+                        $active = true;
+                        foreach ($files as $filename => $input) { ?>
+                            <li class="list-group-item<?php if ($active) echo ' active'; ?>"><a href="#file-<?php echo str_replace('.', '☺', $filename); ?>"><?php echo $filename; ?></a></li>
+                        <?php $active = false;
+                        } ?>
+                            <li class="list-group-item">
+                                <input type="text" id="new-file-name" class="form-control" placeholder="some-file.html.twig">
+                                <br>
+                                <a id="add-file-btn" href="#" class="btn btn-link">+ Add file</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="file-contents">
+                        <?php
+                        $active = true;
+                        foreach ($files as $filename => $input) { ?>
+                            <div id="file-<?php echo str_replace('.', '☺', $filename); ?>" class="file-content<?php if ($active) echo ' active'; ?>">
+                                <textarea name="files[<?php echo $filename; ?>]" class="form-control file-input"><?php echo $input; ?></textarea>
+                            </div>
+                        <?php $active = false;
+                        } ?>
+                        </div>
+                    </div>
                 </div>
-            <?php $active = false;
-            } ?>
             </div>
            
             <!-- show html output --> 
             <div class="file-output-container">
-                <p class="title-tab-container"><span class="title-tab-style">HTML Output:</span></p>
+                <h2 class="h5">HTML Output:</h2>
                 <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
             </div>
 
@@ -328,8 +336,8 @@ else {
 
                 if (newFileNameText=='') return false;
 
-                $this.parent().before('<li><a href="#file-' + newFileNameText.replace(/\./g, '☺') + '">' + newFileNameText + '</a></li>');
-                $('.file-contents').append('<div id="file-' + newFileNameText.replace(/\./g, '☺') + '" class="file-content"><textarea name="files[' + newFileNameText + ']" class="file-input"></textarea></div>');
+                $this.parent().before('<li class="list-group-item"><a href="#file-' + newFileNameText.replace(/\./g, '☺') + '">' + newFileNameText + '</a></li>');
+                $('.file-contents').append('<div id="file-' + newFileNameText.replace(/\./g, '☺') + '" class="file-content"><textarea name="files[' + newFileNameText + ']" class="form-control file-input"></textarea></div>');
 
                 // clear the input ready for the next new file
                 $newFileName.val('');
