@@ -252,7 +252,7 @@ else {
     </head>
     <body>
 
-        <form method="POST">
+        <form id="twig-form" method="POST">
 
             <header>
                 <input type="submit" class="submit-btn" value="Render">
@@ -448,6 +448,39 @@ else {
                 mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
                 lineNumbers: true,
                 viewportMargin: Infinity
+            });
+
+            // Add event handler for form submission
+            $('#twig-form').submit(function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                var formData = $(this).serialize(); // Serialize form data
+
+                $.ajax({
+                    type: 'POST',
+                    url: '', // Current page URL
+                    data: formData,
+                    success: function(response) {
+                        // Update the output area with the response
+                        var $output = $('.file-output');
+                        $output.html(response);
+
+                        // Reinitialize CodeMirror for the updated output
+                        CodeMirror(function(elt) {
+                            $output.replaceWith(elt);
+                            $(elt).addClass('file-output');
+                        }, {
+                            value: response,
+                            readOnly: true,
+                            mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
+                            lineNumbers: true,
+                            viewportMargin: Infinity
+                        });
+                    },
+                    error: function() {
+                        alert('An error occurred while processing the request.');
+                    }
+                });
             });
 
         });
