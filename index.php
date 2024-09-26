@@ -389,6 +389,9 @@ else {
                 }
             });
 
+            // track codemirror editors
+            var editors = [];
+
             // get current theme
             var theme = $('#theme').val();
             if (theme == '') {
@@ -446,11 +449,11 @@ else {
                 // detect if codemirror is not yet setup
                 if ( ! $tab.find('textarea ~ .CodeMirror').length) {
                     // init codemirror editor
-                    CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
+                    editors.push(CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
                         mode: { name: "jinja2", htmlMode: true },
                         viewportMargin: Infinity,
                         theme: codemirrorTheme,
-                    });
+                    }));
                 }
 
                 return false;
@@ -518,16 +521,16 @@ else {
             });
 
             // init codemirror editor
-            CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
+            editors.push(CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
                 mode: { name: "jinja2", htmlMode: true },
                 viewportMargin: Infinity,
                 theme: codemirrorTheme,
-            });
-            CodeMirror.fromTextArea($('#twig-vars')[0], {
+            }));
+            editors.push(CodeMirror.fromTextArea($('#twig-vars')[0], {
                 mode: "application/json",
                 viewportMargin: Infinity,
                 theme: codemirrorTheme,
-            });
+            }));
 
             // init codemirror on the output too, but make it read only
             var $output = $('.file-output'),
@@ -548,7 +551,19 @@ else {
             $('#twig-form').submit(function(event) {
                 event.preventDefault(); // Prevent default form submission
 
-                var formData = $(this).serialize(); // Serialize form data
+                var formData = $(this).serializeArray(); // Serialize form data
+                $.each(editors, function(index, editor) {
+                    var found = false;
+                    $.each(formData, function(index, item) {
+                        if (item.name == editor.getTextArea().name) {
+                            item.value = editor.getValue();
+                            found = true;
+                        }
+                    });
+                    if (!found) {
+                        formData.push({ name: editor.getTextArea().name, value: editor.getValue() });
+                    }
+                });
 
                 $.ajax({
                     type: 'POST',
