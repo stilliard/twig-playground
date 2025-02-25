@@ -57,6 +57,9 @@ if ( ! $jsonError) {
         $loader = new Twig\Loader\ArrayLoader($files);
         $twig = new Twig\Environment($loader, [
             'debug' => true,
+            'cache' => false,
+            'optimizations' => 0,
+            'max_render_time' => 2, // seconds
         ]);
 
         // enable dump() function
