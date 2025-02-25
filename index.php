@@ -1,4 +1,14 @@
 <?php
+// Configure session
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
+session_start();
 
 error_reporting(E_ALL);
 ini_set('display_errors', true);
@@ -305,6 +315,27 @@ else {
             }
         }
 
+        .rendered-frame {
+            width: 100%;
+            min-height: 200px;
+            border: 1px solid var(--border);
+            background: var(--inner-background);
+        }
+
+        /* Update CSS styles section */
+        .file-output,
+        .rendered-frame {
+            width: 100%;
+            min-height: 300px; /* Make both sides same height */
+            border: 1px solid var(--border);
+            background: var(--inner-background);
+        }
+
+        .file-output {
+            background-color: #EEE;
+            padding: 4px;
+        }
+
         </style>
     </head>
     <body>
@@ -369,8 +400,24 @@ else {
 
             <!-- show html output -->
             <div class="file-output-container">
-                <h2 class="h5">HTML Output:</h2>
-                <code class="file-output"><?php echo htmlspecialchars($output); ?></code>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2 class="h5">Raw Output:</h2>
+                        <code class="file-output" data-mode="<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>"><?php echo htmlspecialchars($output); ?></code>
+                    </div>
+                    <div class="col-md-6">
+                        <h2 class="h5">Rendered Output:</h2>
+                        <?php
+                        // Generate a unique token for this render
+                        $_SESSION['render_token'] = uniqid('render_', true);
+                        ?>
+                        <iframe id="render-frame"
+                            src="render.php?output=<?php echo urlencode(base64_encode($output)); ?>&token=<?php echo $_SESSION['render_token']; ?>"
+                            sandbox="allow-same-origin"
+                            class="rendered-frame"
+                        ></iframe>
+                    </div>
+                </div>
             </div>
 
         </form>
@@ -560,35 +607,45 @@ else {
                 theme: codemirrorTheme,
             });
 
-            // Add event handler for form submission
+            // AJAX submission handler
             $('#twig-form').submit(function(event, bypass) {
                 if (bypass) return true;
 
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault();
 
                 $.ajax({
                     type: 'POST',
-                    url: '', // Current page URL
+                    url: '',
                     data: getData(),
                     success: function(response) {
-                        // Update the output area with the response
-                        var $output = $('.file-output');
-                        var filteredResponse = $(response).find('.file-output').html();
-                        var decodedResponse = $('<textarea/>').html(filteredResponse).text();
-                        $output.html(decodedResponse);
+                        // Safely extract data from response
+                        var $response = $(response);
+                        var $newOutput = $response.find('.file-output');
+                        var outputText = $newOutput.text();
+                        var outputMode = $newOutput.data('mode');
 
-                        // Reinitialize CodeMirror for the updated output
+                        // Update the code view
+                        var $output = $('.file-output');
+                        $output.text(outputText);
+
+                        // Reinitialize CodeMirror
                         CodeMirror(function(elt) {
                             $output.replaceWith(elt);
                             $(elt).addClass('file-output');
                         }, {
-                            value: decodedResponse,
+                            value: outputText,
                             readOnly: true,
-                            mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
+                            mode: 'text/' + outputMode,
                             lineNumbers: true,
                             viewportMargin: Infinity,
                             theme: codemirrorTheme,
                         });
+
+                        // Extract the new iframe URL and update it
+                        var $newFrame = $response.find('#render-frame');
+                        if ($newFrame.length) {
+                            $('#render-frame').attr('src', $newFrame.attr('src'));
+                        }
                     },
                     error: function() {
                         alert('An error occurred while processing the request.');
