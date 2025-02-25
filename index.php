@@ -59,6 +59,7 @@ if ( ! $jsonError) {
             'debug' => true,
             'cache' => false,
             'optimizations' => 0,
+            'strict_variables' => true,
             'max_render_time' => 2, // seconds
         ]);
 
