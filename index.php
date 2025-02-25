@@ -55,10 +55,15 @@ if ( ! $jsonError) {
 
         // read in the files
         $loader = new Twig\Loader\ArrayLoader($files);
-        $twig = new Twig\Environment($loader);
+        $twig = new Twig\Environment($loader, [
+            'debug' => true,
+        ]);
+
+        // enable dump() function
+        $twig->addExtension(new Twig\Extension\DebugExtension());
 
         // Sandbox to prevent php function calls directly (without sandbox these are allowed in arrow functions)
-        // https://twig.symfony.com/doc/2.x/
+        // https://twig.symfony.com/doc/3.x/
         $tags = [
             'apply',
             'autoescape',
