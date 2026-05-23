@@ -27,7 +27,7 @@ $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : 
 ];
 
 // set vars
-$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{ "text": "demo", "items": [{ "name": "A" }, { "name": "B" }] }';
+$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : json_encode(["text" => "demo", "items" => [["name" => "A"], ["name" => "B"]]], JSON_PRETTY_PRINT);
 
 // decode the json, check for errors
 $jsonError = false;
