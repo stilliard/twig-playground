@@ -39,9 +39,13 @@ session_write_close();
     <style>
         body {
             margin: 0;
-            padding: 10px;
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #FFF;
+            padding: 14px 16px;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #1a2230;
+            background: #fff;
+            -webkit-font-smoothing: antialiased;
         }
     </style>
 </head>

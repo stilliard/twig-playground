@@ -1,0 +1,230 @@
+/* === design tokens === */
+:root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface-2: #eef1f7;
+    --border: #d8dee9;
+    --border-strong: #c2cad8;
+    --text: #1a2230;
+    --text-dim: #65718a;
+    --accent: #2f81f7;
+    --accent-hover: #1f6fe5;
+    --accent-soft: rgba(47, 129, 247, 0.12);
+    --danger: #e5534b;
+    --radius: 10px;
+    --radius-sm: 7px;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 4px 16px rgba(16, 24, 40, 0.06);
+    --shadow-focus: 0 0 0 3px var(--accent-soft);
+    color-scheme: light;
+}
+
+/* === base === */
+* { box-sizing: border-box; }
+html { background-color: var(--bg); }
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0 0 4rem;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+.app-shell { max-width: 1440px; margin: 0 auto; padding: 0 1.75rem; }
+
+a { cursor: pointer; color: var(--accent); }
+div, ul { padding: 0; margin: 0; }
+::selection { background: var(--accent-soft); }
+
+/* === header === */
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1.75rem;
+    margin: 0 0 1.75rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--border);
+}
+.app-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+.app-header .brand .mark {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #9b5cff));
+    color: #fff;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+}
+.app-header .brand .muted { color: var(--text-dim); font-weight: 500; }
+.header-actions { display: flex; align-items: center; gap: 0.6rem; }
+
+/* === section labels === */
+.section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 0 0 0.3rem;
+}
+.section-hint { color: var(--text-dim); font-size: 0.85rem; margin: 0 0 0.7rem; }
+
+/* === buttons === */
+.btn { border-radius: var(--radius-sm); font-weight: 500; transition: background-color .15s, border-color .15s, box-shadow .15s; }
+.btn:focus-visible { box-shadow: var(--shadow-focus); outline: none; }
+.btn-primary { background: var(--accent); border-color: var(--accent); }
+.btn-primary:hover, .btn-primary:focus { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-secondary {
+    background: var(--surface-2);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+.btn-secondary:hover, .btn-secondary:focus { background: var(--border); border-color: var(--border-strong); color: var(--text); }
+
+/* === select === */
+#theme {
+    width: auto;
+    min-width: 96px;
+    background-color: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+#theme:focus { border-color: var(--accent); box-shadow: var(--shadow-focus); }
+
+/* === panels === */
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* === file tabs === */
+.file-names-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.4rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.list-group-item,
+.list-group-item + .list-group-item {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+}
+.file-names-list li {
+    list-style: none;
+    border-radius: var(--radius-sm);
+    transition: background-color .12s;
+}
+.file-names-list li:hover { background-color: var(--accent-soft); }
+.file-names-list li.active { background-color: var(--accent); }
+.file-names-list a {
+    display: inline-block;
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm);
+}
+.file-names-list li.active a { color: #fff; }
+.file-names-list .form-control {
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.8rem;
+}
+.file-names-list .form-control:focus { border-color: var(--accent); box-shadow: var(--shadow-focus); }
+.file-names-list .form-control::placeholder { color: var(--text-dim); }
+.file-names-list li:has(#new-file-name):hover { background: transparent; }
+#add-file-btn { font-style: normal; color: var(--accent); text-decoration: none; padding: 0; font-size: 0.85rem; }
+#add-file-btn:hover { color: var(--accent-hover); }
+
+a.delete-file-btn {
+    float: right;
+    width: auto;
+    font-weight: bold;
+    color: var(--danger);
+    padding: 0 0.4rem;
+}
+.rename-file input { margin-bottom: 4px; }
+
+/* === editors === */
+.file-content { display: none; }
+.file-content.active { display: block; }
+.file-content textarea { width: 100%; min-height: 200px; }
+#twig-vars { width: 100%; }
+
+.CodeMirror {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 4px;
+    height: auto;
+    min-height: 120px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    box-shadow: var(--shadow);
+    transition: border-color .15s, box-shadow .15s;
+}
+.CodeMirror-focused { border-color: var(--accent); box-shadow: var(--shadow-focus); }
+#twig-vars ~ .CodeMirror { min-height: 25px; }
+/* cancel default-theme white background in favour of surface */
+.cm-s-default.CodeMirror { box-shadow: var(--shadow); background: var(--surface); color: var(--text); }
+.cm-s-default .CodeMirror-gutters { background: var(--surface-2); border-right: 1px solid var(--border); }
+
+/* === output === */
+.file-output-container { clear: both; }
+.file-output {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    padding: 4px;
+}
+.file-output,
+.rendered-frame {
+    width: 100%;
+    min-height: 300px;
+}
+.rendered-frame {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+@media (max-width: 600px){
+    .app-header { padding: 0.8rem 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .app-shell { padding: 0 1rem; }
+    .file-names-list { flex-direction: row; flex-wrap: wrap; }
+    .file-contents,
+    .file-names-list { float: none; width: 100%; }
+}

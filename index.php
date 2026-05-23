@@ -211,140 +211,46 @@ else {
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/default.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/lucario.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material-darker.min.css">
 
+        <link rel="stylesheet" href="style.css">
+
+        <!-- PHP-driven theme override (depends on the selected theme) -->
         <style>
-
-        /* === vars === */
-        :root {
-            --outer-background: #EEE;
-            --inner-background: #FFF;
-            --border: #CCC;
-            --text: #222;
-            --active-tab: #666;
-        }
         <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>@media (prefers-color-scheme: dark) {<?php } ?>
         <?php if (! isset($_POST['theme']) || $_POST['theme'] == '' || $_POST['theme'] == 'dark') { ?>
             :root {
-                --outer-background: #000912;
-                --inner-background: #011021;
-                --border: #005f9f;
-                --text: #cceeff;
-                --active-tab: #007bff;
+                --bg: #0b0f17;
+                --surface: #11161f;
+                --surface-2: #161c28;
+                --border: #232c3b;
+                --border-strong: #303a4d;
+                --text: #d6deeb;
+                --text-dim: #8693a8;
+                --accent: #4d9fff;
+                --accent-hover: #6cb0ff;
+                --accent-soft: rgba(77, 159, 255, 0.16);
+                --danger: #ff6b6b;
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(0, 0, 0, 0.4);
+                color-scheme: dark;
             }
         <?php } ?>
         <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>}<?php } ?>
-
-        /* === base === */
-        html { background-color: var(--outer-background); }
-        body {
-            background-color: var(--inner-background);
-            color: var(--text);
-            margin: 0 auto;
-            max-width: 1260px;
-            padding: 2em;
-            border-radius: 10px;
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
-            margin-top: 2em;
-        }
-
-        a { cursor: pointer; }
-        div, ul { padding: 0; margin: 0; }
-
-        /* === editor === */
-        .file-names-list { border-top: 1px solid var(--border); }
-        .file-contents { }
-
-        .list-group-item,
-        .list-group-item + .list-group-item { background-color: transparent; }
-        .file-names-list .form-control { background-color: transparent; color: var(--text); }
-        .file-names-list .form-control,
-        .file-names-list .form-control::placeholder { color: #666; }
-
-        .file-names-list li { padding: 4px; list-style: none; border-left: 3px solid var(--active-tab); }
-        .file-names-list li.active { background-color: var(--active-tab); }
-        .file-names-list a { display: inline-block; width: 100%; color: var(--active-tab); text-decoration: none; }
-        .file-names-list li.active a { color: #FFF; }
-
-        .file-content { display: none; }
-        .file-content.active { display: block; }
-        .file-content textarea { width: 100%; min-height: 200px; }
-
-        #twig-vars { width: 100%; }
-
-        .file-output-container { clear: both; }
-        .file-output { border: 1px solid var(--border); background-color: #EEE; padding: 4px; }
-
-        .submit-btn,
-        .reset-btn,
-        .twig-links { float: right; padding: 5px; }
-
-        #add-file-btn { font-style: italic; }
-
-        a.delete-file-btn { float: right; width: auto; font-weight: bold; }
-
-        .CodeMirror { border: 1px solid var(--border); padding: 5px; height: auto; min-height: 120px; }
-        #twig-vars ~ .CodeMirror { min-height: 25px; }
-
-        #theme { margin-top: 10px; }
-
-        .title-tab-style {
-            border: 1px solid var(--border);
-            border-bottom: 0;
-            background-color: #EEE;
-            color: #333;
-            font-weight: bold;
-            padding: 5px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .title-tab-container {
-            margin: 0;
-        }
-
-        /* cancel theme box-shadow */
-        .cm-s-default.CodeMirror { box-shadow: none; }
-
-        @media (max-width: 600px){
-            .file-contents,
-            .file-names-list {
-                float: none;
-                width: 100%;
-            }
-        }
-
-        .rendered-frame {
-            width: 100%;
-            min-height: 200px;
-            border: 1px solid var(--border);
-            background: var(--inner-background);
-        }
-
-        /* Update CSS styles section */
-        .file-output,
-        .rendered-frame {
-            width: 100%;
-            min-height: 300px; /* Make both sides same height */
-            border: 1px solid var(--border);
-            background: var(--inner-background);
-        }
-
-        .file-output {
-            background-color: #EEE;
-            padding: 4px;
-        }
-
         </style>
     </head>
     <body>
 
         <form id="twig-form" method="POST">
 
-            <header class="d-flex justify-content-between align-items-center mb-4">
-                <h1>Twig Playground</h1>
-                <div>
+            <header class="app-header">
+                <h1 class="brand"><span class="mark">{{</span> Twig Playground</h1>
+                <div class="header-actions">
                     <input type="submit" class="btn btn-primary" value="Render">
                     <a href="/" class="btn btn-secondary">Reset</a>
 
@@ -357,16 +263,18 @@ else {
                 </div>
             </header>
 
+          <div class="app-shell">
+
             <!-- enter variables -->
             <div class="mb-4">
-                <h2 class="h5">JSON variables:</h2>
-                <p><em>These will become variables available to the twig template files</em></p>
+                <h2 class="section-label">JSON variables</h2>
+                <p class="section-hint">These will become variables available to the twig template files</p>
                 <textarea name="twig-vars" id="twig-vars" class="form-control"><?php echo $twigVars; ?></textarea>
             </div>
 
             <div class="mb-4">
-                <h2 class="h5">Twig Files:</h2>
-                <p><em>Only the first file is compiled, but other files can be included or extended</em></p>
+                <h2 class="section-label">Twig Files</h2>
+                <p class="section-hint">Only the first file is compiled, but other files can be included or extended</p>
                 <div class="row">
                     <div class="col-md-3">
                         <ul class="list-group file-names-list">
@@ -402,11 +310,11 @@ else {
             <div class="file-output-container">
                 <div class="row">
                     <div class="col-md-6">
-                        <h2 class="h5">Raw Output:</h2>
+                        <h2 class="section-label">Raw Output</h2>
                         <code class="file-output" data-mode="<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>"><?php echo htmlspecialchars($output); ?></code>
                     </div>
                     <div class="col-md-6">
-                        <h2 class="h5">Rendered Output:</h2>
+                        <h2 class="section-label">Rendered Output</h2>
                         <?php
                         // Generate a unique token for this render
                         $_SESSION['render_token'] = uniqid('render_', true);
@@ -420,6 +328,8 @@ else {
                 </div>
             </div>
 
+          </div><!-- /.app-shell -->
+
         </form>
 
         <!-- bring in jquery lib -->
@@ -432,238 +342,7 @@ else {
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
 
         <!-- main script for this page -->
-        <script>
-        jQuery(function($) {
-
-            // theme select
-            $('#theme').change(function () {
-                $('form').trigger('submit', [true]);
-            });
-
-            // track codemirror editors
-            var editors = [];
-
-            // get data from codemirror editors
-            function getData() {
-                var data = {};
-                $.each(editors, function(index, editor) {
-                    data[editor.getTextArea().name] = editor.getValue();
-                });
-                return data;
-            }
-
-            // get current theme
-            var theme = $('#theme').val();
-            if (theme == '') {
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    theme = 'dark';
-                } else {
-                    theme = 'light';
-                }
-            }
-            // code mirror theme
-            var codemirrorTheme = theme == 'dark' ? 'lucario' : 'default';
-
-            // Add file
-            $('#add-file-btn').click(function () {
-                var $this = $(this),
-                    $newFileName = $('#new-file-name'),
-                    newFileNameText = $newFileName.val().replace(/[^A-z0-9\.\-_]/ig, '');
-
-                if (newFileNameText=='') return false;
-
-                $this.parent().before('<li class="list-group-item"><a href="#file-' + newFileNameText.replace(/\./g, '☺') + '">' + newFileNameText + '</a></li>');
-                $('.file-contents').append('<div id="file-' + newFileNameText.replace(/\./g, '☺') + '" class="file-content"><textarea name="files[' + newFileNameText + ']" class="form-control file-input"></textarea></div>');
-
-                // clear the input ready for the next new file
-                $newFileName.val('');
-
-                // open the new tab
-                $('a[href="#file-' + newFileNameText.replace(/\./g, '☺') + '"]').click();
-
-                return false;
-            });
-            // hijact enter key to do the above too
-            $('#new-file-name').keypress(function (e) {
-                if (e.which == 13) {
-                    $('#add-file-btn').click();
-                    return false;
-                }
-            });
-
-            // tabs
-            $('.file-names-list').on('click', 'a[href]', function () {
-
-                var $tab;
-
-                // hide current tabs
-                $('.file-names-list li.active, .file-content.active').removeClass('active');
-
-                // show this tab
-                $(this).parent().addClass('active');
-                $tab = $($(this).attr('href')).addClass('active');
-
-                // put cursor into textarea
-                $tab.find('textarea').focus();
-
-                // detect if codemirror is not yet setup
-                if ( ! $tab.find('textarea ~ .CodeMirror').length) {
-                    // init codemirror editor
-                    editors.push(CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
-                        mode: { name: "jinja2", htmlMode: true },
-                        viewportMargin: Infinity,
-                        theme: codemirrorTheme,
-                    }));
-                }
-
-                return false;
-            });
-
-            // delete file
-            $('.file-names-list').on('click', '.delete-file-btn', function () {
-                var $this = $(this),
-                    $parent = $this.parent().parent(),
-                    $tab = $($parent.find('input[name="old-file-name"]').val());
-
-                $parent.remove();
-                $tab.remove();
-
-                // show first tab
-                $('.file-names-list li:first-child > a').click();
-                return false;
-            });
-
-            // rename file
-            $('.file-names-list').on('dblclick', 'a[href]', function () {
-
-                var $this = $(this),
-                    text = $this.text()
-                    href = $this.attr('href'),
-                    html = '';
-
-                html = '\
-                <div class="rename-file">\
-                    <input type="hidden" name="old-file-name" value="'+ href +'">\
-                    <input type="text" name="new-file-name" value="'+ text +'" title="Press enter to save">';
-
-                // should we offer a delete btn? (don't allow delete if there's only 1 file left)
-                if ($('.file-names-list li').length > 2) {
-                    html += '<a class="delete-file-btn">x</a>';
-                }
-
-                html += '</div>';
-
-                $this.replaceWith(html);
-
-                $this.find('input[name="new-file-name"]').focus();
-
-                return false;
-
-            }).on('keypress', 'input', function (e) {
-
-                // watch for submit of this (by enter key)
-                var $input, newFileName, oldFileName, $tab;
-                if (e.which == 13) {
-
-                    // set filename
-                    $input = $(this);
-                    newFileName = $input.val().replace(/[^A-z0-9\.\-_]/ig, '');
-                    $input.parent().replaceWith('<a href="#file-' + newFileName.replace(/\./g, '☺') + '">' + newFileName + '</a>');
-                    oldFileName = $input.siblings('input[name="old-file-name"]').val();
-                    $tab = $(oldFileName);
-
-                    // update textarea key
-                    $tab.attr('id', 'file-' + newFileName.replace(/\./g, '☺'));
-                    $tab.find('> textarea').attr('name', 'files[' + newFileName + ']');
-
-                    return false;
-                }
-            });
-
-            // init codemirror editor
-            editors.push(CodeMirror.fromTextArea($('.file-content.active textarea')[0], {
-                mode: { name: "jinja2", htmlMode: true },
-                viewportMargin: Infinity,
-                theme: codemirrorTheme,
-            }));
-            editors.push(CodeMirror.fromTextArea($('#twig-vars')[0], {
-                mode: "application/json",
-                viewportMargin: Infinity,
-                theme: codemirrorTheme,
-            }));
-
-            // init codemirror on the output too, but make it read only
-            var $output = $('.file-output'),
-                text = $output.text();
-            CodeMirror(function(elt) {
-                $output.replaceWith(elt);
-                $(elt).addClass('file-output');
-            }, {
-                value: text,
-                readOnly: true,
-                mode: "text/<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>",
-                lineNumbers: true,
-                viewportMargin: Infinity,
-                theme: codemirrorTheme,
-            });
-
-            // AJAX submission handler
-            $('#twig-form').submit(function(event, bypass) {
-                if (bypass) return true;
-
-                event.preventDefault();
-
-                $.ajax({
-                    type: 'POST',
-                    url: '',
-                    data: getData(),
-                    success: function(response) {
-                        // Safely extract data from response
-                        var $response = $(response);
-                        var $newOutput = $response.find('.file-output');
-                        var outputText = $newOutput.text();
-                        var outputMode = $newOutput.data('mode');
-
-                        // Update the code view
-                        var $output = $('.file-output');
-                        $output.text(outputText);
-
-                        // Reinitialize CodeMirror
-                        CodeMirror(function(elt) {
-                            $output.replaceWith(elt);
-                            $(elt).addClass('file-output');
-                        }, {
-                            value: outputText,
-                            readOnly: true,
-                            mode: 'text/' + outputMode,
-                            lineNumbers: true,
-                            viewportMargin: Infinity,
-                            theme: codemirrorTheme,
-                        });
-
-                        // Extract the new iframe URL and update it
-                        var $newFrame = $response.find('#render-frame');
-                        if ($newFrame.length) {
-                            $('#render-frame').attr('src', $newFrame.attr('src'));
-                        }
-                    },
-                    error: function() {
-                        alert('An error occurred while processing the request.');
-                    }
-                });
-            });
-
-            // Ctrl+enter or ctrl+s to submit form
-            $(document).keydown(function(e) {
-                if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    $('#twig-form').submit();
-                    return false;
-                }
-            });
-
-        });
-        </script>
+        <script src="app.js"></script>
 
     </body>
 </html>
