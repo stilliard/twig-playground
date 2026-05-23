@@ -5,35 +5,26 @@ Allows a simple way to set variables via JSON, manage multiple "files", and quic
 
 ## Requirements
 
-- PHP 8.5+ with Composer, **or**
-- Docker (recommended)
+- PHP 8.5+ with Composer or **Docker** (recommended method)
 
 ## Running with Docker
 
-Build the image:
+Build and start (available at http://127.0.0.1:8080):
 
 ```bash
-docker build -t twig-playground .
+make docker-up
 ```
 
-Run it (available at http://localhost:8088):
+To use a different port, pass `PORT`:
 
 ```bash
-docker run --rm -p 8088:80 twig-playground
+make docker-up PORT=9090
 ```
 
-Optionally for local development with live file editing (mounts the current directory):
+Stop:
 
 ```bash
-docker run --rm -p 8088:80 -v $(PWD):/var/www/html twig-playground
-```
-
-Or use the provided Makefile shortcuts:
-
-```bash
-make docker-build   # build the image
-make docker-run     # run on port 8088
-make docker-dev     # optionally run with live file mounting
+make docker-down
 ```
 
 ## Running locally (without Docker)
@@ -41,7 +32,7 @@ make docker-dev     # optionally run with live file mounting
 Install dependencies:
 
 ```bash
-composer install
+make update
 ```
 
 Start the built-in PHP server:

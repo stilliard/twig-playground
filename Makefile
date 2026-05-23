@@ -5,12 +5,10 @@ update:
 server:
 	php -S localhost:8000
 
-docker-build:
-	docker build -t twig-playground .
+PORT ?= 8080
 
-PORT=8088
-docker-run:
-	docker run --rm -p $(PORT):80 twig-playground
+docker-up:
+	PORT=$(PORT) docker compose up --build
 
-docker-dev:
-	docker run --rm -p $(PORT):80 -v $(PWD):/var/www/html twig-playground
+docker-down:
+	docker compose down
