@@ -1,0 +1,18 @@
+# Disable directory listing
+Options -Indexes
+
+# Block all dotfiles (.env, .git, .gitignore, etc.)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Block sensitive project files
+<FilesMatch "^(composer\.(json|lock)|Makefile|Dockerfile|docker-compose\.yml|README\.md|LICENSE)$">
+    Require all denied
+</FilesMatch>
+
+# Block access to vendor directory
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^vendor(/|$) - [F,L]
+</IfModule>
