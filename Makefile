@@ -1,6 +1,7 @@
 -include .env
 export
 
+PROJECT=twig-playground
 PORT ?= 8080
 
 update:
@@ -10,7 +11,7 @@ serve:
 	php -S localhost:$(PORT)
 
 docker-up:
-	docker compose up --build
+	docker compose -p $(PROJECT) up --build
 
 docker-down:
-	docker compose down
+	docker compose -p $(PROJECT) down
