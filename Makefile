@@ -2,10 +2,10 @@
 update:
 	composer install
 
-server:
-	php -S localhost:8000
+PORT ?= 8023
 
-PORT ?= 8080
+serve:
+	php -S localhost:$(PORT)
 
 docker-up:
 	PORT=$(PORT) docker compose up --build
