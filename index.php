@@ -23,19 +23,28 @@ $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : 
     <li>{{ item.name }}</li>
 {% endfor %}
 </ul>
+{% include \'some-file.html.twig\' %}
+',
+    'some-file.html.twig' => '<p>{{ items | length }} items</p>
 ',
 ];
 
 // set vars
-$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : json_encode(["text" => "demo", "items" => [["name" => "A"], ["name" => "B"]]], JSON_PRETTY_PRINT);
+$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{
+    "text": "demo",
+    "items": [
+        { "name": "A" },
+        { "name": "B" }
+    ]
+}';
 
 // decode the json, check for errors
 $jsonError = false;
 $twigVarsArray = json_decode($twigVars, true);
-if ( ! $twigVarsArray) {
+if ( ! is_array($twigVarsArray)) {
     switch (json_last_error()) {
         case JSON_ERROR_NONE:
-            $jsonError = 'No errors';
+            $jsonError = 'Variables must be a JSON object';
         break;
         case JSON_ERROR_DEPTH:
             $jsonError = 'Maximum stack depth exceeded';
@@ -57,6 +66,10 @@ if ( ! $twigVarsArray) {
         break;
     }
 }
+
+// render state, shown in the header status
+$renderError = true;
+$renderMs = null;
 
 // if no json errors
 if ( ! $jsonError) {
@@ -181,7 +194,10 @@ if ( ! $jsonError) {
         $twig->addExtension($sandbox);
 
         // render twig templates
+        $renderStart = hrtime(true);
         $output = $twig->render(array_keys($files)[0], $twigVarsArray);
+        $renderMs = max(1, (int) round((hrtime(true) - $renderStart) / 1e6));
+        $renderError = false;
 
     }
     // show user errors
@@ -202,6 +218,40 @@ else {
     $output = 'Json error: ' . $jsonError;
 }
 
+// header status text
+if ($jsonError) {
+    $status = 'Invalid JSON';
+} elseif ($renderError) {
+    $status = 'Render failed';
+} else {
+    $status = 'Rendered in ' . $renderMs . 'ms';
+}
+
+// output highlighting mode
+$outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
+
+// Generate a unique token for this render
+$_SESSION['render_token'] = uniqid('render_', true);
+$frameSrc = 'render.php?output=' . urlencode(base64_encode($output)) . '&token=' . $_SESSION['render_token'];
+
+// ajax renders only need the results
+if (isset($_POST['ajax'])) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'output' => $output,
+        'mode' => $outputMode,
+        'status' => $status,
+        'error' => $renderError,
+        'frameSrc' => $frameSrc,
+    ]);
+    exit;
+}
+
+// file tab ids can't contain dots
+function fileId($filename) {
+    return 'file-' . str_replace('.', '☺', $filename);
+}
+
 ?><!DOCTYPE html>
 <html lang="en">
     <head>
@@ -209,136 +259,121 @@ else {
         <title>Twig Playground</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
-
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/default.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/material-darker.min.css">
 
         <link rel="stylesheet" href="style.css">
-
-        <!-- PHP-driven theme override (depends on the selected theme) -->
-        <style>
-        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>@media (prefers-color-scheme: dark) {<?php } ?>
-        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '' || $_POST['theme'] == 'dark') { ?>
-            :root {
-                --bg: #0b0f17;
-                --surface: #11161f;
-                --surface-2: #161c28;
-                --border: #232c3b;
-                --border-strong: #303a4d;
-                --text: #d6deeb;
-                --text-dim: #8693a8;
-                --accent: #4d9fff;
-                --accent-hover: #6cb0ff;
-                --accent-soft: rgba(77, 159, 255, 0.16);
-                --danger: #ff6b6b;
-                --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(0, 0, 0, 0.4);
-                color-scheme: dark;
-            }
-        <?php } ?>
-        <?php if (! isset($_POST['theme']) || $_POST['theme'] == '') { ?>}<?php } ?>
-        </style>
     </head>
     <body>
 
         <form id="twig-form" method="POST">
 
             <header class="app-header">
-                <h1 class="brand"><span class="mark">{{</span> Twig Playground</h1>
+                <a href="/" class="brand"><span class="mark">{%</span> Twig Playground</a>
                 <div class="header-actions">
-                    <input type="submit" class="btn btn-primary" value="Render">
-                    <a href="/" class="btn btn-secondary">Reset</a>
-
-                    <!-- theme select -->
-                    <select name="theme" id="theme" class="form-select">
-                        <option value="">Auto</option>
-                        <option value="light" <?php if (isset($_POST['theme']) && $_POST['theme'] == 'light') echo 'selected'; ?>>Light</option>
-                        <option value="dark" <?php if (isset($_POST['theme']) && $_POST['theme'] == 'dark') echo 'selected'; ?>>Dark</option>
-                    </select>
+                    <span id="render-status" class="render-status<?php if ($renderError) echo ' is-error'; ?>"><span class="dot"></span><span class="text"><?php echo $status; ?></span></span>
+                    <a href="/" class="btn">Reset</a>
                 </div>
             </header>
 
-          <div class="app-shell">
+            <main class="app-shell">
 
-            <!-- enter variables -->
-            <div class="mb-4">
-                <h2 class="section-label">JSON variables</h2>
-                <p class="section-hint">These will become variables available to the twig template files</p>
-                <textarea name="twig-vars" id="twig-vars" class="form-control"><?php echo $twigVars; ?></textarea>
-            </div>
+                <div class="app-col">
 
-            <div class="mb-4">
-                <h2 class="section-label">Twig Files</h2>
-                <p class="section-hint">Only the first file is compiled, but other files can be included or extended</p>
-                <div class="row">
-                    <div class="col-md-3">
-                        <ul class="list-group file-names-list">
-                        <?php
-                        $active = true;
-                        foreach ($files as $filename => $input) { ?>
-                            <li class="list-group-item<?php if ($active) echo ' active'; ?>"><a href="#file-<?php echo str_replace('.', '☺', $filename); ?>"><?php echo $filename; ?></a></li>
-                        <?php $active = false;
-                        } ?>
-                            <li class="list-group-item">
-                                <input type="text" id="new-file-name" class="form-control" placeholder="some-file.html.twig">
-                                <br>
-                                <a id="add-file-btn" href="#" class="btn btn-link">+ Add file</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="file-contents">
-                        <?php
-                        $active = true;
-                        foreach ($files as $filename => $input) { ?>
-                            <div id="file-<?php echo str_replace('.', '☺', $filename); ?>" class="file-content<?php if ($active) echo ' active'; ?>">
-                                <textarea name="files[<?php echo $filename; ?>]" class="form-control file-input"><?php echo $input; ?></textarea>
-                            </div>
-                        <?php $active = false;
-                        } ?>
+                    <!-- enter variables -->
+                    <section class="pane">
+                        <div class="pane-head">
+                            <h2>Variables <span class="dim">JSON</span></h2>
+                            <span id="vars-meta" class="pane-meta"></span>
                         </div>
-                    </div>
-                </div>
-            </div>
+                        <div class="card">
+                            <textarea name="twig-vars" id="twig-vars"><?php echo htmlspecialchars($twigVars); ?></textarea>
+                        </div>
+                    </section>
 
-            <!-- show html output -->
-            <div class="file-output-container">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h2 class="section-label">Raw Output</h2>
-                        <code class="file-output" data-mode="<?php echo stristr(array_keys($files)[0], '.css') ? 'css' : 'html'; ?>"><?php echo htmlspecialchars($output); ?></code>
-                    </div>
-                    <div class="col-md-6">
-                        <h2 class="section-label">Rendered Output</h2>
-                        <?php
-                        // Generate a unique token for this render
-                        $_SESSION['render_token'] = uniqid('render_', true);
-                        ?>
+                    <!-- template files -->
+                    <section class="pane">
+                        <div class="pane-head">
+                            <h2>Templates</h2>
+                            <span class="pane-meta">First file renders; others can be included</span>
+                        </div>
+                        <div class="card">
+                            <ul class="file-tabs">
+                            <?php
+                            $active = true;
+                            foreach ($files as $filename => $input) { ?>
+                                <li<?php if ($active) echo ' class="active"'; ?>><a href="#<?php echo htmlspecialchars(fileId($filename)); ?>" title="Double-click to rename"><?php echo htmlspecialchars($filename); ?></a><span class="entry-badge">entry</span><button type="button" class="delete-file-btn" title="Delete file">×</button></li>
+                            <?php $active = false;
+                            } ?>
+                                <li class="add-file">
+                                    <input type="text" id="new-file-name" placeholder="some-file.html.twig" hidden>
+                                    <button type="button" id="add-file-btn">+ File</button>
+                                </li>
+                            </ul>
+                            <div class="file-contents">
+                            <?php
+                            $active = true;
+                            foreach ($files as $filename => $input) { ?>
+                                <div id="<?php echo htmlspecialchars(fileId($filename)); ?>" class="file-content<?php if ($active) echo ' active'; ?>">
+                                    <textarea name="files[<?php echo htmlspecialchars($filename); ?>]" class="file-input"><?php echo htmlspecialchars($input); ?></textarea>
+                                </div>
+                            <?php $active = false;
+                            } ?>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <div class="app-col">
+
+                    <!-- rendered output -->
+                    <section class="pane">
+                        <div class="pane-head">
+                            <h2>Preview</h2>
+                            <span class="pane-meta">Updates as you type</span>
+                        </div>
                         <iframe id="render-frame"
-                            src="render.php?output=<?php echo urlencode(base64_encode($output)); ?>&token=<?php echo $_SESSION['render_token']; ?>"
+                            src="<?php echo htmlspecialchars($frameSrc); ?>"
                             sandbox="allow-same-origin"
-                            class="rendered-frame"
+                            class="card rendered-frame"
+                            title="Rendered preview"
                         ></iframe>
-                    </div>
-                </div>
-            </div>
+                    </section>
 
-          </div><!-- /.app-shell -->
+                    <!-- raw html output -->
+                    <section class="pane">
+                        <div class="pane-head">
+                            <h2>HTML output</h2>
+                            <button type="button" id="copy-output-btn" class="link-btn">Copy</button>
+                        </div>
+                        <div class="card">
+                            <code class="file-output" data-mode="<?php echo $outputMode; ?>"><?php echo htmlspecialchars($output); ?></code>
+                        </div>
+                    </section>
+
+                </div>
+
+            </main>
 
         </form>
+
+        <footer class="app-footer">
+            <span>Provided by <a href="https://wildfireinternet.co.uk">Wildfire Internet</a></span>
+            <span class="footer-links">
+                <a href="https://twig.symfony.com/doc/3.x/">Twig docs</a>
+                <a href="https://github.com/stilliard/twig-playground">GitHub</a>
+            </span>
+        </footer>
 
         <!-- bring in jquery lib -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <!-- bring in codemirror syntax editor -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/jinja2/jinja2.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/xml/xml.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
 
         <!-- main script for this page -->
