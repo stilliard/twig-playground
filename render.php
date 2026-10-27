@@ -39,9 +39,9 @@ session_write_close();
     <style>
         body {
             margin: 0;
-            padding: 14px 16px;
+            padding: 20px 32px;
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            font-size: 15px;
+            font-size: 18px;
             line-height: 1.5;
             color: #1a2230;
             background: #fff;

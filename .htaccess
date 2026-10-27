@@ -7,7 +7,7 @@ Options -Indexes
 </FilesMatch>
 
 # Block sensitive project files
-<FilesMatch "^(composer\.(json|lock)|Makefile|Dockerfile|docker-compose\.yml|README\.md|LICENSE)$">
+<FilesMatch "^(composer\.(json|lock)|Makefile|Dockerfile|docker-compose\.yml|README\.md|CLAUDE\.md|LICENSE)$">
     Require all denied
 </FilesMatch>
 
