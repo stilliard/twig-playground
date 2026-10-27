@@ -22,26 +22,24 @@
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #121211;
-        --surface: #1a1a19;
-        --surface-2: #222220;
-        --border: #2c2c2a;
-        --border-strong: #3a3a37;
-        --text: #e8e8e5;
-        --text-dim: #8f8f8b;
-        --text-faint: #575754;
-        --accent: #e8e8e5;
-        --success: #4cc06e;
-        --danger: #ff6b63;
-        --code-purple: #c38bff;
-        --code-green: #6bd38a;
-        --code-tag: #9a9a96;
-        --mark-bg: #e8e8e5;
-        --mark-text: #121211;
-        color-scheme: dark;
-    }
+:root[data-theme="dark"] {
+    --bg: #121211;
+    --surface: #1a1a19;
+    --surface-2: #222220;
+    --border: #2c2c2a;
+    --border-strong: #3a3a37;
+    --text: #e8e8e5;
+    --text-dim: #8f8f8b;
+    --text-faint: #575754;
+    --accent: #e8e8e5;
+    --success: #4cc06e;
+    --danger: #ff6b63;
+    --code-purple: #c38bff;
+    --code-green: #6bd38a;
+    --code-tag: #9a9a96;
+    --mark-bg: #e8e8e5;
+    --mark-text: #121211;
+    color-scheme: dark;
 }
 
 /* === base === */
@@ -102,6 +100,23 @@ button { font: inherit; color: inherit; cursor: pointer; }
     letter-spacing: -0.04em;
 }
 .header-actions { display: flex; align-items: center; gap: 1.1rem; }
+
+.theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    transition: border-color .15s, color .15s;
+}
+.theme-toggle:hover { border-color: var(--border-strong); color: var(--text); }
+.theme-toggle svg { width: 18px; height: 18px; }
+:root[data-theme="dark"] .theme-toggle .icon-moon,
+:root:not([data-theme="dark"]) .theme-toggle .icon-sun { display: none; }
 
 .render-status {
     display: inline-flex;
@@ -315,6 +330,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     .brand .mark { width: 34px; height: 34px; }
     .header-actions { width: 100%; justify-content: space-between; }
     .btn { padding: 0.35rem 0.9rem; font-size: 0.95rem; }
+    .theme-toggle { width: 34px; height: 34px; margin-left: auto; }
     .file-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .pane-meta { font-size: 0.85rem; }
     .app-shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 20px; }

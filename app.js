@@ -252,6 +252,25 @@ jQuery(function($) {
         theme: 'twig',
     });
 
+    // light/dark toggle, choosing the system theme goes back to following it
+    var systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+    function systemTheme() {
+        return systemDark.matches ? 'dark' : 'light';
+    }
+    $('#theme-toggle').click(function () {
+        var theme = document.documentElement.getAttribute('data-theme') == 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        try {
+            if (theme == systemTheme()) localStorage.removeItem('theme');
+            else localStorage.setItem('theme', theme);
+        } catch (e) {}
+    });
+    systemDark.addEventListener('change', function () {
+        var saved;
+        try { saved = localStorage.getItem('theme'); } catch (e) {}
+        if ( ! saved) document.documentElement.setAttribute('data-theme', systemTheme());
+    });
+
     // copy output
     $('#copy-output-btn').click(function () {
         var $btn = $(this);

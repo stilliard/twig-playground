@@ -266,6 +266,16 @@ function fileId($filename) {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
 
         <link rel="stylesheet" href="style.css">
+
+        <!-- set the theme before first paint: saved choice, else the system theme -->
+        <script>
+        (function () {
+            var theme;
+            try { theme = localStorage.getItem('theme'); } catch (e) {}
+            if ( ! theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+        </script>
     </head>
     <body>
 
@@ -275,6 +285,10 @@ function fileId($filename) {
                 <a href="/" class="brand"><span class="mark">{%</span> Twig Playground</a>
                 <div class="header-actions">
                     <span id="render-status" class="render-status<?php if ($renderError) echo ' is-error'; ?>"><span class="dot"></span><span class="text"><?php echo $status; ?></span></span>
+                    <button type="button" id="theme-toggle" class="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle light/dark mode">
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                    </button>
                     <a href="/" class="btn">Reset</a>
                 </div>
             </header>
