@@ -319,7 +319,7 @@ function fileId($filename) {
                             <?php
                             $active = true;
                             foreach ($files as $filename => $input) { ?>
-                                <li<?php if ($active) echo ' class="active"'; ?>><a href="#<?php echo htmlspecialchars(fileId($filename)); ?>" title="Double-click to rename"><?php echo htmlspecialchars($filename); ?></a><span class="entry-badge">entry</span><button type="button" class="delete-file-btn" title="Delete file">×</button></li>
+                                <li<?php if ($active) echo ' class="active"'; ?>><a href="#<?php echo htmlspecialchars(fileId($filename)); ?>" title="Double-click to rename"><?php echo htmlspecialchars($filename); ?></a><span class="entry-badge">entry</span><button type="button" class="delete-file-btn" title="Delete <?php echo htmlspecialchars($filename); ?>" aria-label="Delete <?php echo htmlspecialchars($filename); ?>">×</button></li>
                             <?php $active = false;
                             } ?>
                                 <li class="add-file">

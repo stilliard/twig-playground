@@ -60,7 +60,7 @@ jQuery(function($) {
         return 'file-' + filename.replace(/\./g, '☺');
     }
     function cleanFileName(name) {
-        return name.replace(/[^A-z0-9\.\-_]/ig, '');
+        return name.replace(/[^A-Za-z0-9.\-_]/g, '');
     }
 
     // init codemirror on a textarea, rendering again on every change
@@ -88,13 +88,15 @@ jQuery(function($) {
 
     // show how many top-level keys the variables have
     function updateVarsMeta() {
-        var count;
+        var vars, count;
         try {
-            count = Object.keys(JSON.parse(varsEditor.getValue())).length;
-            $varsMeta.text(count + ' top-level key' + (count == 1 ? '' : 's'));
+            vars = JSON.parse(varsEditor.getValue());
         } catch (e) {
-            $varsMeta.text('Invalid JSON');
+            return $varsMeta.text('Invalid JSON');
         }
+        if (vars === null || typeof vars != 'object') return $varsMeta.text('Must be an object');
+        count = Object.keys(vars).length;
+        $varsMeta.text(count + ' top-level key' + (count == 1 ? '' : 's'));
     }
 
     // read only output view
@@ -165,8 +167,9 @@ jQuery(function($) {
         // already have it? just open it
         if ($existing.length) return openTab($existing);
 
-        var $li = $('<li><a></a><span class="entry-badge">entry</span><button type="button" class="delete-file-btn" title="Delete file">×</button></li>');
+        var $li = $('<li><a></a><span class="entry-badge">entry</span><button type="button" class="delete-file-btn">×</button></li>');
         $li.find('a').attr({ href: '#' + fileId(name), title: 'Double-click to rename' }).text(name);
+        $li.find('.delete-file-btn').attr({ title: 'Delete ' + name, 'aria-label': 'Delete ' + name });
         $('.file-tabs .add-file').before($li);
 
         var $content = $('<div class="file-content"><textarea class="file-input"></textarea></div>').attr('id', fileId(name));
@@ -221,6 +224,7 @@ jQuery(function($) {
             if ($('a[href="#' + fileId(name) + '"]').length) return;
 
             $link.attr('href', '#' + fileId(name)).text(name);
+            $link.siblings('.delete-file-btn').attr({ title: 'Delete ' + name, 'aria-label': 'Delete ' + name });
             $tab.attr('id', fileId(name));
             $tab.children('textarea').attr('name', 'files[' + name + ']');
             render();
