@@ -228,7 +228,6 @@ elseif ( ! $jsonError) {
         $functions = [
             'attribute',
             'block',
-            'constant',
             'country_timezones',
             'cycle',
             'date',
