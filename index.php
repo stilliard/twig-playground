@@ -38,6 +38,13 @@ $twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{
     ]
 }';
 
+// store the output for the preview iframe (render.php) with a single use token, returning the iframe src
+function renderFrameSrc($output) {
+    $_SESSION['render_token'] = bin2hex(random_bytes(16));
+    $_SESSION['render_output'] = $output;
+    return 'render.php?token=' . $_SESSION['render_token'];
+}
+
 // decode the json, check for errors
 $jsonError = false;
 $twigVarsArray = json_decode($twigVars, true);
@@ -230,9 +237,9 @@ if ($jsonError) {
 // output highlighting mode
 $outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
 
-// Generate a unique token for this render
-$_SESSION['render_token'] = uniqid('render_', true);
-$frameSrc = 'render.php?output=' . urlencode(base64_encode($output)) . '&token=' . $_SESSION['render_token'];
+// hand the output to the preview iframe, then release the session lock so render.php can load it
+$frameSrc = renderFrameSrc($output);
+session_write_close();
 
 // ajax renders only need the results
 if (isset($_POST['ajax'])) {
