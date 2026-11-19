@@ -54,10 +54,12 @@ if ( ! is_string($twigVars)) {
 // output highlighting mode
 $outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
 
-// store the output for the preview iframe (render.php) with a single use token, returning the iframe src
+// store the output for the preview iframe (render.php) with a single use token, returning the iframe src.
+// the stored output is capped, so huge (or never loaded) renders can't fill up session storage
+const MAX_PREVIEW_BYTES = 1024 * 1024;
 function renderFrameSrc($output) {
     $_SESSION['render_token'] = bin2hex(random_bytes(16));
-    $_SESSION['render_output'] = $output;
+    $_SESSION['render_output'] = strlen($output) > MAX_PREVIEW_BYTES ? 'Output is too large to preview (over 1MB)' : $output;
     return 'render.php?token=' . $_SESSION['render_token'];
 }
 
