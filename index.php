@@ -51,11 +51,42 @@ if ( ! is_string($twigVars)) {
     $twigVars = $defaultTwigVars;
 }
 
+// output highlighting mode
+$outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
+
 // store the output for the preview iframe (render.php) with a single use token, returning the iframe src
 function renderFrameSrc($output) {
     $_SESSION['render_token'] = bin2hex(random_bytes(16));
     $_SESSION['render_output'] = $output;
     return 'render.php?token=' . $_SESSION['render_token'];
+}
+
+// fatal errors (e.g. timeout or memory exhaustion while rendering) can't be caught,
+// so for ajax requests respond with the usual JSON and a friendly message instead
+if (isset($_POST['ajax'])) {
+    register_shutdown_function(function () use ($outputMode) {
+        $error = error_get_last();
+        if ( ! $error || ! ($error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR))) {
+            return;
+        }
+        if (str_contains($error['message'], 'Maximum execution time')) {
+            $output = 'Render took too long';
+        } elseif (str_contains($error['message'], 'Allowed memory size')) {
+            $output = 'Render used too much memory';
+        } else {
+            $output = 'Render failed';
+        }
+        $frameSrc = renderFrameSrc($output);
+        session_write_close();
+        header('Content-Type: application/json', true, 200); // PHP sets a 500 on fatal errors
+        echo json_encode([
+            'output' => $output,
+            'mode' => $outputMode,
+            'status' => 'Render failed',
+            'error' => true,
+            'frameSrc' => $frameSrc,
+        ]);
+    });
 }
 
 // decode the json, check for errors
@@ -107,7 +138,6 @@ elseif ( ! $jsonError) {
             'cache' => false,
             'optimizations' => 0,
             'strict_variables' => true,
-            'max_render_time' => 2, // seconds
         ]);
 
         // enable dump() function
@@ -217,7 +247,8 @@ elseif ( ! $jsonError) {
         $sandbox = new Twig\Extension\SandboxExtension($policy, true);
         $twig->addExtension($sandbox);
 
-        // render twig templates
+        // render twig templates, limiting how long that can take
+        set_time_limit(3);
         $renderStart = hrtime(true);
         $output = $twig->render(array_keys($files)[0], $twigVarsArray);
         $renderMs = max(1, (int) round((hrtime(true) - $renderStart) / 1e6));
@@ -254,9 +285,6 @@ if ($jsonError) {
 } else {
     $status = 'Rendered in ' . $renderMs . 'ms';
 }
-
-// output highlighting mode
-$outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
 
 // hand the output to the preview iframe, then release the session lock so render.php can load it
 $frameSrc = renderFrameSrc($output);
