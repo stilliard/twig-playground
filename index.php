@@ -307,6 +307,8 @@ function fileId($filename) {
     return 'file-' . str_replace('.', '☺', $filename);
 }
 
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'");
+
 ?><!DOCTYPE html>
 <html lang="en">
     <head>
@@ -323,14 +325,7 @@ function fileId($filename) {
         <link rel="stylesheet" href="style.css">
 
         <!-- set the theme before first paint: saved choice, else the system theme -->
-        <script>
-        (function () {
-            var theme;
-            try { theme = localStorage.getItem('theme'); } catch (e) {}
-            if ( ! theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-        </script>
+        <script src="theme.js"></script>
     </head>
     <body>
 
