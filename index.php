@@ -10,13 +10,15 @@ session_set_cookie_params([
 ]);
 session_start();
 
+// log errors (they show in docker logs) but never display them, as that leaks paths and stack traces
 error_reporting(E_ALL);
-ini_set('display_errors', true);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 
-// setup array of files
-$files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : [
+// default files and vars
+$defaultFiles = [
     'index.html.twig' => '<h1>{{ text | title }}</h1>
 <ul>
 {% for item in items %}
@@ -28,15 +30,26 @@ $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : 
     'some-file.html.twig' => '<p>{{ items | length }} items</p>
 ',
 ];
-
-// set vars
-$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{
+$defaultTwigVars = '{
     "text": "demo",
     "items": [
         { "name": "A" },
         { "name": "B" }
     ]
 }';
+
+// setup array of files (filename => contents) and vars (a JSON string), falling back to the defaults if malformed
+$inputError = false;
+$files = ! empty($_POST['files']) ? $_POST['files'] : $defaultFiles;
+if ( ! is_array($files) || array_filter($files, 'is_string') !== $files) {
+    $inputError = 'Invalid request: files must be a list of template names and contents';
+    $files = $defaultFiles;
+}
+$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : $defaultTwigVars;
+if ( ! is_string($twigVars)) {
+    $inputError = 'Invalid request: variables must be a JSON string';
+    $twigVars = $defaultTwigVars;
+}
 
 // store the output for the preview iframe (render.php) with a single use token, returning the iframe src
 function renderFrameSrc($output) {
@@ -78,8 +91,12 @@ if ( ! is_array($twigVarsArray)) {
 $renderError = true;
 $renderMs = null;
 
+// malformed request
+if ($inputError) {
+    $output = $inputError;
+}
 // if no json errors
-if ( ! $jsonError) {
+elseif ( ! $jsonError) {
 
     try {
 
@@ -219,6 +236,10 @@ if ( ! $jsonError) {
     }
     catch (Twig\Error\Error $e) {
         $output = 'Twig error'; // not showing $e->getMessage() here as that may give too much away
+    }
+    catch (\Throwable $e) {
+        error_log((string) $e);
+        $output = 'Render failed'; // unexpected error, details are only logged
     }
 }
 else {
