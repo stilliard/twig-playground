@@ -11,5 +11,8 @@ Options -Indexes
     Require all denied
 </FilesMatch>
 
-# Block access to vendor directory (mod_alias, so no mod_rewrite needed)
-RedirectMatch 404 ^/vendor(/|$)
+# Block access to vendor directory.
+# Deliberately not wrapped in <IfModule>: without mod_rewrite this should fail
+# loudly (500) rather than silently serve vendor/.
+RewriteEngine On
+RewriteRule ^vendor(/|$) - [F,L]

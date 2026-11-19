@@ -4,6 +4,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN apt-get update && apt-get install -y --no-install-recommends unzip git && rm -rf /var/lib/apt/lists/*
 
+# rewrite is required by .htaccess to block vendor/
+RUN a2enmod rewrite
+
 # don't send the PHP version in an X-Powered-By header
 RUN echo 'expose_php = Off' > "$PHP_INI_DIR/conf.d/expose-php.ini"
 
