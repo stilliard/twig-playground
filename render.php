@@ -21,13 +21,14 @@ header("Content-Security-Policy: default-src 'none'; style-src 'self' 'unsafe-in
 if (! isset($_GET['token']) || 
     ! isset($_SESSION['render_token']) || 
     $_GET['token'] !== $_SESSION['render_token'] ||
-    ! isset($_GET['output'])) {
+    ! isset($_SESSION['render_output'])) {
     http_response_code(403);
     die('Access denied');
 }
 
-// Clear the token to prevent reuse
-unset($_SESSION['render_token']);
+// Clear the token and output to prevent reuse
+$output = $_SESSION['render_output'];
+unset($_SESSION['render_token'], $_SESSION['render_output']);
 
 session_write_close();
 
@@ -55,7 +56,7 @@ session_write_close();
 // 1. CSP blocks scripts and dangerous content
 // 2. Token system prevents unauthorized access
 // 3. Frame sandbox adds additional protection
-echo base64_decode($_GET['output']); 
+echo $output;
 ?>
 </body>
 </html>

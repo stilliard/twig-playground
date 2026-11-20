@@ -10,13 +10,15 @@ session_set_cookie_params([
 ]);
 session_start();
 
+// log errors (they show in docker logs) but never display them, as that leaks paths and stack traces
 error_reporting(E_ALL);
-ini_set('display_errors', true);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 
-// setup array of files
-$files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : [
+// default files and vars
+$defaultFiles = [
     'index.html.twig' => '<h1>{{ text | title }}</h1>
 <ul>
 {% for item in items %}
@@ -28,15 +30,66 @@ $files = isset($_POST['files']) && ! empty($_POST['files']) ? $_POST['files'] : 
     'some-file.html.twig' => '<p>{{ items | length }} items</p>
 ',
 ];
-
-// set vars
-$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : '{
+$defaultTwigVars = '{
     "text": "demo",
     "items": [
         { "name": "A" },
         { "name": "B" }
     ]
 }';
+
+// setup array of files (filename => contents) and vars (a JSON string), falling back to the defaults if malformed
+$inputError = false;
+$files = ! empty($_POST['files']) ? $_POST['files'] : $defaultFiles;
+if ( ! is_array($files) || array_filter($files, 'is_string') !== $files) {
+    $inputError = 'Invalid request: files must be a list of template names and contents';
+    $files = $defaultFiles;
+}
+$twigVars = isset($_POST['twig-vars']) ? $_POST['twig-vars'] : $defaultTwigVars;
+if ( ! is_string($twigVars)) {
+    $inputError = 'Invalid request: variables must be a JSON string';
+    $twigVars = $defaultTwigVars;
+}
+
+// output highlighting mode
+$outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
+
+// store the output for the preview iframe (render.php) with a single use token, returning the iframe src.
+// the stored output is capped, so huge (or never loaded) renders can't fill up session storage
+const MAX_PREVIEW_BYTES = 1024 * 1024;
+function renderFrameSrc($output) {
+    $_SESSION['render_token'] = bin2hex(random_bytes(16));
+    $_SESSION['render_output'] = strlen($output) > MAX_PREVIEW_BYTES ? 'Output is too large to preview (over 1MB)' : $output;
+    return 'render.php?token=' . $_SESSION['render_token'];
+}
+
+// fatal errors (e.g. timeout or memory exhaustion while rendering) can't be caught,
+// so for ajax requests respond with the usual JSON and a friendly message instead
+if (isset($_POST['ajax'])) {
+    register_shutdown_function(function () use ($outputMode) {
+        $error = error_get_last();
+        if ( ! $error || ! ($error['type'] & (E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR))) {
+            return;
+        }
+        if (str_contains($error['message'], 'Maximum execution time')) {
+            $output = 'Render took too long';
+        } elseif (str_contains($error['message'], 'Allowed memory size')) {
+            $output = 'Render used too much memory';
+        } else {
+            $output = 'Render failed';
+        }
+        $frameSrc = renderFrameSrc($output);
+        session_write_close();
+        header('Content-Type: application/json', true, 200); // PHP sets a 500 on fatal errors
+        echo json_encode([
+            'output' => $output,
+            'mode' => $outputMode,
+            'status' => 'Render failed',
+            'error' => true,
+            'frameSrc' => $frameSrc,
+        ]);
+    });
+}
 
 // decode the json, check for errors
 $jsonError = false;
@@ -71,8 +124,12 @@ if ( ! is_array($twigVarsArray)) {
 $renderError = true;
 $renderMs = null;
 
+// malformed request
+if ($inputError) {
+    $output = $inputError;
+}
 // if no json errors
-if ( ! $jsonError) {
+elseif ( ! $jsonError) {
 
     try {
 
@@ -83,7 +140,6 @@ if ( ! $jsonError) {
             'cache' => false,
             'optimizations' => 0,
             'strict_variables' => true,
-            'max_render_time' => 2, // seconds
         ]);
 
         // enable dump() function
@@ -174,7 +230,6 @@ if ( ! $jsonError) {
         $functions = [
             'attribute',
             'block',
-            'constant',
             'country_timezones',
             'cycle',
             'date',
@@ -193,7 +248,8 @@ if ( ! $jsonError) {
         $sandbox = new Twig\Extension\SandboxExtension($policy, true);
         $twig->addExtension($sandbox);
 
-        // render twig templates
+        // render twig templates, limiting how long that can take
+        set_time_limit(3);
         $renderStart = hrtime(true);
         $output = $twig->render(array_keys($files)[0], $twigVarsArray);
         $renderMs = max(1, (int) round((hrtime(true) - $renderStart) / 1e6));
@@ -213,6 +269,10 @@ if ( ! $jsonError) {
     catch (Twig\Error\Error $e) {
         $output = 'Twig error'; // not showing $e->getMessage() here as that may give too much away
     }
+    catch (\Throwable $e) {
+        error_log((string) $e);
+        $output = 'Render failed'; // unexpected error, details are only logged
+    }
 }
 else {
     $output = 'Json error: ' . $jsonError;
@@ -227,12 +287,9 @@ if ($jsonError) {
     $status = 'Rendered in ' . $renderMs . 'ms';
 }
 
-// output highlighting mode
-$outputMode = stristr(array_keys($files)[0], '.css') ? 'css' : 'html';
-
-// Generate a unique token for this render
-$_SESSION['render_token'] = uniqid('render_', true);
-$frameSrc = 'render.php?output=' . urlencode(base64_encode($output)) . '&token=' . $_SESSION['render_token'];
+// hand the output to the preview iframe, then release the session lock so render.php can load it
+$frameSrc = renderFrameSrc($output);
+session_write_close();
 
 // ajax renders only need the results
 if (isset($_POST['ajax'])) {
@@ -252,6 +309,8 @@ function fileId($filename) {
     return 'file-' . str_replace('.', '☺', $filename);
 }
 
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'");
+
 ?><!DOCTYPE html>
 <html lang="en">
     <head>
@@ -263,19 +322,12 @@ function fileId($filename) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css" integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous" referrerpolicy="no-referrer">
 
         <link rel="stylesheet" href="style.css">
 
         <!-- set the theme before first paint: saved choice, else the system theme -->
-        <script>
-        (function () {
-            var theme;
-            try { theme = localStorage.getItem('theme'); } catch (e) {}
-            if ( ! theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-        </script>
+        <script src="theme.js"></script>
     </head>
     <body>
 
@@ -384,11 +436,11 @@ function fileId($filename) {
         </footer>
 
         <!-- bring in jquery lib -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <!-- bring in codemirror syntax editor -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js" integrity="sha384-UXbkZAbZYZ/KCAslc6UO4d6UHNKsOxZ/sqROSQaPTZCuEIKhfbhmffQ64uXFOcma" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js" integrity="sha384-kmQrbJf09Uo1WRLMDVGoVG3nM6F48frIhcj7f3FDUjeRzsiHwyBWDjMUIttnIeAf" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js" integrity="sha384-to8njsu2GAiXQnY/aLGzz0DIY/SFSeSDodtvSl869n2NmsBdHOTZNNqbEBPYh7Pa" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
         <!-- main script for this page -->
         <script src="app.js"></script>

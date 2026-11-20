@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip git && rm
 # rewrite is required by .htaccess to block vendor/
 RUN a2enmod rewrite
 
+# production php.ini: errors are logged (to docker logs), never displayed
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 # don't send the PHP version in an X-Powered-By header
 RUN echo 'expose_php = Off' > "$PHP_INI_DIR/conf.d/expose-php.ini"
 
